@@ -1,0 +1,56 @@
+import math
+
+
+def inverse_kinematics(x, y, z, L1, L2, L3):
+    # Angle for the base motor (rotation in the x-y plane)
+    theta1 = math.atan2(y, x)
+
+    # Distance to the target point in the x-y plane
+    r = math.sqrt(x ** 2 + y ** 2)
+
+    # Distance to the target point from the base in 3D
+    d = math.sqrt(r ** 2 + z ** 2)
+
+    # Angle between Arm 1 and the x-y plane
+    theta2 = math.atan2(z, r)
+
+    # Check for the validity of the distance calculation
+    if d < L3:
+        raise ValueError(
+            "The target point is too close. The robot cannot reach this position with the given arm lengths.")
+
+    # New distance to the target point from Arm 2 in 3D considering Arm 3
+    d_prime = math.sqrt(d ** 2 - L3 ** 2)
+
+    # Angle between Arm 1 and Arm 2 (using the law of cosines)
+    cos_theta3 = (L1 ** 2 + d_prime ** 2 - L2 ** 2) / (2 * L1 * d_prime)
+    cos_theta3 = max(-1, min(1, cos_theta3))  # Clamping to avoid math domain errors
+    theta3 = math.acos(cos_theta3)
+
+    # Angle between Arm 2 and Arm 3
+    cos_theta4 = (L2 ** 2 + L3 ** 2 - d ** 2) / (2 * L2 * L3)
+    cos_theta4 = max(-1, min(1, cos_theta4))  # Clamping to avoid math domain errors
+    theta4 = math.acos(cos_theta4)
+
+    # Convert to degrees if needed
+    theta1_deg = math.degrees(theta1)
+    theta2_deg = math.degrees(theta2)
+    theta3_deg = math.degrees(theta3)
+    theta4_deg = math.degrees(theta4)
+
+    return theta1_deg, theta2_deg, theta3_deg, theta4_deg
+
+
+# Example usage
+x = 10  # Example x-coordinate
+y = 5  # Example y-coordinate
+z = 7  # Example z-coordinate
+L1 = 15  # Length of Arm 1
+L2 = 10  # Length of Arm 2
+L3 = 7  # Length of Arm 3
+
+angles = inverse_kinematics(x, y, z, L1, L2, L3)
+print(f"θ1 (base rotation): {angles[0]:.2f}°")
+print(f"θ2 (arm 1 relative to x-y plane): {angles[1]:.2f}°")
+print(f"θ3 (arm 1 to arm 2): {angles[2]:.2f}°")
+print(f"θ4 (arm 2 to arm 3): {angles[3]:.2f}°")
